@@ -85,20 +85,7 @@ def seed_from_csv(db: Optional[Session] = None, path: str = SALES_CSV) -> Dict[s
         
     
 
-    for sku, d in df.sort_values("date").groupby("sku"):
-        if sku not in existing_skus:
-            db.add(Product(
-                sku=sku,
-                category=str(d.iloc[-1]["category"]),
-                current_price=float(d.iloc[-1]["price"]),
-                current_stock=None
-            ))
-
-        db.commit()
-        return {"sales_records": len(df), "products": df["sku"].nunique(), "seeded": len(df)}
-    finally:
-        if close:
-            db.close()
+    
 
 
 # ----------------------------------------------------------------------------- products and stock
