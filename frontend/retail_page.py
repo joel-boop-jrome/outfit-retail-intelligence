@@ -536,64 +536,42 @@ def pricing_assistant(signals, stock_map):
 
 
 # ----------------------------------------------------------------------------- F2. shopper interest
+
 def shopper_interest(df_all):
-    """What shoppers did in the try-on store (the abstract's 'intent signals'), from the events log."""
+    """Show shopper activity recorded by the shopper module."""
     ev = api_client.engagement_summary()
-    section("rt-interest", "Shopper interest",
-            "What shoppers did in the try-on store. This is a live log from the shopper tab, so it starts empty.")
+
+    section(
+        "rt-interest",
+        "Shopper interest",
+        "What shoppers did in the try-on store. This is a live log from the shopper tab."
+    )
+
     if not ev["total_events"]:
-        st.markdown('<div class="rt-empty">No shopper activity yet. Open the <b>For shoppers</b> tab, measure your T-shirt size, '
-                    "view some picks or try a shirt on, then come back.</div>", unsafe_allow_html=True)
+        st.markdown(
+            '<div class="rt-empty">No shopper activity yet. Open the '
+            '<b>For shoppers</b> tab and measure your size or view some picks.</div>',
+            unsafe_allow_html=True
+        )
         return
+
     m1, m2, m3 = st.columns(3)
     m1.metric("T-shirt sizes read", ev.get("size_reads", 0))
-    m2.metric("Outfit picks viewed", ev["picks_viewed"])
-    m3.metric("Shirts tried on", ev["tryons"])
-    c1, c2 = st.columns(2, gap="large")
-    with c1:
-        if ev.get("top_sizes"):
-            st.markdown("**T-shirt sizes shoppers measured**")
-            fig = px.bar(pd.DataFrame(ev["top_sizes"], columns=["Size", "Shoppers"]), x="Shoppers", y="Size", orientation="h")
-            fig.update_traces(marker_color=OLIVE)
-            fig.update_xaxes(dtick=1)
-            st.plotly_chart(chart_layout(fig, 220), use_container_width=True)
-    with c2:
-        window = st.select_slider("Look back over", options=[4, 8, 12], value=4, key="shopper_interest_rt_window",
-                                  format_func=lambda w: f"Last {w} weeks",
-                                  help="How many recent weeks of real sales to compare against.")
+    m2.metric("Outfit picks viewed", ev.get("picks_viewed", 0))
+    m3.metric("Shirts tried on", ev.get("tryons", 0))
 
-    st.markdown('<div id="rt-stock" class="rt-anchor"></div>', unsafe_allow_html=True)
-    stock_map = stock_controls(df_all)
+    if ev.get("top_sizes"):
+        st.markdown("**T-shirt sizes shoppers measured**")
+        fig = px.bar(
+            pd.DataFrame(ev["top_sizes"], columns=["Size", "Shoppers"]),
+            x="Shoppers",
+            y="Size",
+            orientation="h"
+        )
+        fig.update_traces(marker_color=OLIVE)
+        fig.update_xaxes(dtick=1)
+        st.plotly_chart(fig, use_container_width=True)
 
-    df = df_all if cat == "all" else df_all[df_all["category"] == cat]
-    signals = ix.build_signals(df, forecasts, elasticities, stock_map, window)
-    cat_trends = ix.category_trends(df, signals)
-    sig_by_sku = {s.sku: s for s in signals}
-
-    if not model_ok:
-        st.markdown('<div class="rt-note warn">The demand model has not been trained yet, so next-week numbers use each '
-                    "product's recent average. Run <code>python -m demand_forecasting.train_lightgbm</code> for model forecasts.</div>",
-                    unsafe_allow_html=True)
-
-    snapshot(signals, cat_trends, bool(stock_map), window)
-    gallery(signals, window)
-    recommendations(signals, cat_trends)
-    trends(cat_trends, signals)
-    pricing_assistant(signals, stock_map)
-
-    shopper_interest(df_all)
-
-    section("rt-advanced", "Product deep-dive", "Pick one product and see the story behind the advice, step by step, in plain words.")
-    with st.expander("Open the product deep-dive"):
-        advanced(df_all, elasticities, forecasts, model_ok, stock_map)
-
-    st.caption(f"Data connection: {api_client.mode()}.")
-
-    scroll_to = st.session_state.pop("rt_scroll", None)
-    if scroll_to:
-        components.html(
-            "<script>setTimeout(function(){var e=window.parent.document.getElementById('%s');"
-            "if(e){e.scrollIntoView({behavior:'smooth',block:'start'});}},400);</script>" % scroll_to, height=0)
 
 
 # ----------------------------------------------------------------------------- G. advanced analytics
