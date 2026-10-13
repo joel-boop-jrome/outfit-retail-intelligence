@@ -1,0 +1,10 @@
+{
+  "fps": 38.3,
+  "ms_per_frame": 26.1,
+  "segmentation": true,
+  "source": "image",
+  "frames": 200,
+  "person_found": 200,
+  "machine": "Linux x86_64, x86_64",
+  "date": "2026-10-10"
+}

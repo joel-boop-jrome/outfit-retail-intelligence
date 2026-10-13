@@ -1,0 +1,41 @@
+{
+  "weeks": 12,
+  "skus_simulated": 17,
+  "skus_excluded_unreliable_elasticity": [
+    "SKU_002",
+    "SKU_004",
+    "SKU_020"
+  ],
+  "scenarios": {
+    "lean": {
+      "arrivals_vs_demand": 0.8,
+      "static": {
+        "revenue": 959664.0160000001,
+        "units": 13053.6,
+        "stockout_weeks": 204.0,
+        "left_over": 0.0
+      },
+      "dynamic": {
+        "revenue": 1004010.784,
+        "units": 13053.6,
+        "stockout_weeks": 204.0,
+        "left_over": 0.0
+      }
+    },
+    "excess": {
+      "arrivals_vs_demand": 1.5,
+      "static": {
+        "revenue": 1199580.02,
+        "units": 16317.0,
+        "stockout_weeks": 0.0,
+        "left_over": 8158.5
+      },
+      "dynamic": {
+        "revenue": 1309089.0264567095,
+        "units": 21187.249520828504,
+        "stockout_weeks": 0.0,
+        "left_over": 3288.2504791714973
+      }
+    }
+  }
+}

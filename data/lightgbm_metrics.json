@@ -1,0 +1,17 @@
+{
+  "split": "time",
+  "holdout_weeks": 20,
+  "cutoff_date": "2025-08-11",
+  "mae": 10.740886329213604,
+  "mape": 0.13813499583389116,
+  "n_train": 1520,
+  "n_test": 400,
+  "baseline_last_week": {
+    "mae": 19.435,
+    "mape": 0.22658221991586486
+  },
+  "baseline_4week_average": {
+    "mae": 17.141875,
+    "mape": 0.1986704180086246
+  }
+}
