@@ -83,7 +83,7 @@ def seed_from_csv(db: Optional[Session] = None, path: str = SALES_CSV) -> Dict[s
             db.close()
 
         
-    existing_skus = {sku for (sku,) in db.query(Product.sku).all()}
+    
 
     for sku, d in df.sort_values("date").groupby("sku"):
         if sku not in existing_skus:
