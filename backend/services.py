@@ -32,19 +32,56 @@ def _session(db: Optional[Session]):
     return SessionLocal(), True
 
 
+
 def seed_from_csv(db: Optional[Session] = None, path: str = SALES_CSV) -> Dict[str, int]:
-    """Copy the cleaned weekly sales into the database (once) and create one Product row per SKU."""
+    """Copy weekly sales into the database and create missing products."""
     from demand_forecasting.clean_data import clean_sales
+
     db, close = _session(db)
     try:
-        if db.query(func.count(SalesRecord.id)).scalar():
-            return {"sales_records": db.query(func.count(SalesRecord.id)).scalar(),
-                    "products": db.query(func.count(Product.id)).scalar(), "seeded": 0}
+        count = db.query(func.count(SalesRecord.id)).scalar()
+        if count:
+            return {
+                "sales_records": count,
+                "products": db.query(func.count(Product.id)).scalar(),
+                "seeded": 0,
+            }
+
         df, _ = clean_sales(pd.read_csv(path))
         db.bulk_insert_mappings(SalesRecord, [
-            {"sku": r.sku, "date": r.date.to_pydatetime(), "price": float(r.price),
-             "promo_flag": int(r.promo_flag), "units_sold": int(round(r.units_sold))}
-            for r in df.itertuples()])
+            {
+                "sku": r.sku,
+                "date": r.date.to_pydatetime(),
+                "price": float(r.price),
+                "promo_flag": int(r.promo_flag),
+                "units_sold": int(round(r.units_sold)),
+            }
+            for r in df.itertuples()
+        ])
+
+        existing_skus = {
+            sku for (sku,) in db.query(Product.sku).all()
+        }
+
+        for sku, d in df.sort_values("date").groupby("sku"):
+            if sku not in existing_skus:
+                db.add(Product(
+                    sku=sku,
+                    category=str(d.iloc[-1]["category"]),
+                    current_price=float(d.iloc[-1]["price"]),
+                    current_stock=None,
+                ))
+
+        db.commit()
+        return {
+            "sales_records": len(df),
+            "products": df["sku"].nunique(),
+            "seeded": len(df),
+        }
+    finally:
+        if close:
+            db.close()
+
         
     existing_skus = {sku for (sku,) in db.query(Product.sku).all()}
 
